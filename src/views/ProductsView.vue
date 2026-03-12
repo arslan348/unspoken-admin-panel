@@ -51,6 +51,18 @@ async function handleDelete(product) {
   }
 }
 
+async function handleDuplicate(product) {
+  const duplicatedProduct = { ...product }
+  delete duplicatedProduct._id
+  duplicatedProduct.name = `Copy of ${product.name}`
+  const result = await createProduct(duplicatedProduct)
+  if (result.success) {
+    showToast('Product duplicated.')
+  } else {
+    showToast(result.message || 'Duplication failed.', true)
+  }
+}
+
 let toastTimer = null
 function showToast(msg, isError = false) {
   toast.value = (isError ? '✗ ' : '✓ ') + msg
@@ -110,6 +122,7 @@ function showToast(msg, isError = false) {
             </td>
             <td class="actions-cell">
               <button class="btn-edit" @click="openEdit(product)">Edit</button>
+              <button class="btn-duplicate" @click="handleDuplicate(product)">Duplicate</button>
               <button class="btn-delete" @click="handleDelete(product)">Delete</button>
             </td>
           </tr>

@@ -3,6 +3,7 @@ import LoginView from '../views/LoginView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import ProductsView from '../views/ProductsView.vue'
 import CategoriesView from '../views/CategoriesView.vue'
+import AboutView from '../views/AboutView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,6 +17,7 @@ const router = createRouter({
         { path: '', redirect: '/products' },
         { path: '/products', component: ProductsView },
         { path: '/categories', component: CategoriesView },
+        { path: '/about', component: AboutView },
       ],
     },
   ],
