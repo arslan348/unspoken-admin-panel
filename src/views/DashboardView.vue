@@ -14,6 +14,7 @@ function handleLogout() {
 const navItems = [
   { label: 'Categories', path: '/categories', icon: '🗂️' },
   { label: 'Products', path: '/products', icon: '📦' },
+  { label: 'Blogs', path: '/blogs', icon: '📝' },
   { label: 'About', path: '/about', icon: 'ℹ️' },
 ]
 </script>

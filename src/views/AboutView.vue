@@ -24,151 +24,221 @@ function showToast(message, isError = false) {
 </script>
 
 <template>
-  <div class="container-fluid py-4">
-    <div class="row">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h4 class="card-title mb-0">About Us</h4>
-          </div>
-          <div class="card-body">
-            <div v-if="loading" class="text-center">
-              <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-            </div>
-            <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
-            <form v-else @submit.prevent="handleSave">
-              <div class="row">
-                <div class="col-md-6">
-                  <h5>Main Section</h5>
-                  <div class="mb-3">
-                    <label for="title" class="form-label">Title</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="title"
-                      v-model="about.title"
-                      required
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="subtitle" class="form-label">Subtitle</label>
-                    <textarea
-                      class="form-control"
-                      id="subtitle"
-                      rows="3"
-                      v-model="about.subtitle"
-                    ></textarea>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <h5>Our Vision</h5>
-                  <div class="mb-3">
-                    <label for="visionTitle" class="form-label">Vision Title</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="visionTitle"
-                      v-model="about.visionTitle"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="visionText" class="form-label">Vision Text</label>
-                    <textarea
-                      class="form-control"
-                      id="visionText"
-                      rows="5"
-                      v-model="about.visionText"
-                    ></textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label for="visionImage" class="form-label">Vision Image URL</label>
-                    <input
-                      type="url"
-                      class="form-control"
-                      id="visionImage"
-                      v-model="about.visionImage"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <h5>Our Approach</h5>
-                  <div class="mb-3">
-                    <label for="approachTitle" class="form-label">Approach Title</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="approachTitle"
-                      v-model="about.approachTitle"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="approachText" class="form-label">Approach Text</label>
-                    <textarea
-                      class="form-control"
-                      id="approachText"
-                      rows="5"
-                      v-model="about.approachText"
-                    ></textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label for="approachImage" class="form-label">Approach Image URL</label>
-                    <input
-                      type="url"
-                      class="form-control"
-                      id="approachImage"
-                      v-model="about.approachImage"
-                    />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <h5>Our Process</h5>
-                  <div class="mb-3">
-                    <label for="processTitle" class="form-label">Process Title</label>
-                    <input
-                      type="text"
-                      class="form-control"
-                      id="processTitle"
-                      v-model="about.processTitle"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <label for="processText" class="form-label">Process Text</label>
-                    <textarea
-                      class="form-control"
-                      id="processText"
-                      rows="5"
-                      v-model="about.processText"
-                    ></textarea>
-                  </div>
-                  <div class="mb-3">
-                    <label for="processImage" class="form-label">Process Image URL</label>
-                    <input
-                      type="url"
-                      class="form-control"
-                      id="processImage"
-                      v-model="about.processImage"
-                    />
-                  </div>
-                </div>
-              </div>
-              <button type="submit" class="btn btn-primary">Save Changes</button>
-            </form>
-          </div>
-        </div>
+  <div class="about-page">
+    <div class="page-header">
+      <div>
+        <h2>About Us</h2>
+        <p class="subtitle">Manage your about page content</p>
       </div>
     </div>
 
-    <!-- Toast -->
-    <div
-      v-if="toast"
-      class="toast show position-fixed bottom-0 end-0 m-3"
-      role="alert"
-    >
-      <div class="toast-body">{{ toast }}</div>
-    </div>
+    <div v-if="loading" class="state-msg">Loading...</div>
+    <div v-else-if="error" class="state-msg error">{{ error }}</div>
+
+    <form v-else @submit.prevent="handleSave" class="about-form">
+      <div class="grid">
+        <!-- Main Section -->
+        <div class="card">
+          <h4>Main Section</h4>
+          <div class="field">
+            <label>Title</label>
+            <input type="text" v-model="about.title" required />
+          </div>
+          <div class="field">
+            <label>Subtitle</label>
+            <textarea rows="3" v-model="about.subtitle"></textarea>
+          </div>
+        </div>
+
+        <!-- Our Vision -->
+        <div class="card">
+          <h4>Our Vision</h4>
+          <div class="field">
+            <label>Vision Title</label>
+            <input type="text" v-model="about.visionTitle" />
+          </div>
+          <div class="field">
+            <label>Vision Text</label>
+            <textarea rows="5" v-model="about.visionText"></textarea>
+          </div>
+          <div class="field">
+            <label>Vision Image URL</label>
+            <input type="url" v-model="about.visionImage" />
+          </div>
+        </div>
+
+        <!-- Our Approach -->
+        <div class="card">
+          <h4>Our Approach</h4>
+          <div class="field">
+            <label>Approach Title</label>
+            <input type="text" v-model="about.approachTitle" />
+          </div>
+          <div class="field">
+            <label>Approach Text</label>
+            <textarea rows="5" v-model="about.approachText"></textarea>
+          </div>
+          <div class="field">
+            <label>Approach Image URL</label>
+            <input type="url" v-model="about.approachImage" />
+          </div>
+        </div>
+
+        <!-- Our Process -->
+        <div class="card">
+          <h4>Our Process</h4>
+          <div class="field">
+            <label>Process Title</label>
+            <input type="text" v-model="about.processTitle" />
+          </div>
+          <div class="field">
+            <label>Process Text</label>
+            <textarea rows="5" v-model="about.processText"></textarea>
+          </div>
+          <div class="field">
+            <label>Process Image URL</label>
+            <input type="url" v-model="about.processImage" />
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary">Save Changes</button>
+    </form>
+
+    <div v-if="toast" class="toast">{{ toast }}</div>
   </div>
 </template>
+
+<style scoped>
+.about-page {
+  padding: 2rem;
+  position: relative;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-header h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.4rem;
+  color: #1a1a1a;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.state-msg {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.state-msg.error {
+  color: #dc2626;
+}
+
+.about-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1a1a1a;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field label {
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.field input,
+.field textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #4f46e5;
+}
+
+.btn-primary {
+  align-self: flex-start;
+  padding: 0.55rem 1.25rem;
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  animation: slidein 0.2s ease;
+}
+
+@keyframes slidein {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

@@ -38,14 +38,14 @@ const filteredAvailable = computed(() => {
 
 const form = ref({
   name: '', description: '', price: 0, image: '', scent: '',
-  category: '', stock: 0, relatedProducts: [],
+  categories: [], stock: 0, relatedProducts: [],
 })
 const saving = ref(false)
 const errorMsg = ref('')
 const imageError = ref('')
 const imageUploading = ref(false)
 const imagePreview = ref('')
-
+const categorySearch = ref('')
 onMounted(() => {
   fetchCategories()
   fetchProducts()
@@ -61,23 +61,68 @@ watch(
         price: p.price,
         image: p.image,
         scent: p.scent || '',
-        category: p.category?._id || p.category,
+        categories: (p.categories || []).map((c) => c._id || c),
         stock: p.stock,
         relatedProducts: (p.relatedProducts || []).map((r) => r._id || r),
       }
     } else {
       form.value = {
         name: '', description: '', price: 0, image: '', scent: '',
-        category: '', stock: 0, relatedProducts: [],
+        categories: [], stock: 0, relatedProducts: [],
       }
     }
     errorMsg.value = ''
     imageError.value = ''
+    categorySearch.value = ''
     relatedSearch.value = ''
     imagePreview.value = p?.image || ''
   },
   { immediate: true }
 )
+
+// Flatten categories for the picker
+const flatCategories = computed(() => {
+  const result = []
+  for (const group of categoryGroups.value) {
+    if (group.children.length > 0) {
+      for (const child of group.children) {
+        result.push({ ...child, groupName: group.parent.name })
+      }
+    } else {
+      result.push({ ...group.parent, groupName: null })
+    }
+  }
+  return result
+})
+
+
+const filteredCategories = computed(() => {
+  const q = categorySearch.value.toLowerCase()
+  return q
+    ? flatCategories.value.filter((c) => c.name.toLowerCase().includes(q))
+    : flatCategories.value
+})
+
+function toggleCategory(id) {
+  const idx = form.value.categories.indexOf(id)
+  if (idx === -1) {
+    form.value.categories.push(id)
+  } else {
+    form.value.categories.splice(idx, 1)
+  }
+}
+
+function isCategorySelected(id) {
+  return form.value.categories.includes(id)
+}
+
+function removeCategory(id) {
+  form.value.categories = form.value.categories.filter((c) => c !== id)
+}
+
+function getCategoryName(id) {
+  return flatCategories.value.find((c) => c._id === id)?.name || id
+}
 
 function toggleRelated(id) {
   const idx = form.value.relatedProducts.indexOf(id)
@@ -136,8 +181,8 @@ async function handleFileChange(e) {
 async function submit() {
   errorMsg.value = ''
   imageError.value = ''
-  if (!form.value.name || !form.value.description || !form.value.category) {
-    errorMsg.value = 'Name, description and category are required.'
+  if (!form.value.name || !form.value.description || form.value.categories.length === 0) {
+    errorMsg.value = 'Name, description and at least one category are required.'
     return
   }
   if (imageUploading.value) {
@@ -183,20 +228,47 @@ async function submit() {
           </div>
         </div>
 
-        <!-- Category -->
+        <!-- Categories -->
         <div class="field">
-          <label>Category</label>
-          <select v-model="form.category" required>
-            <option value="" disabled>Select a category</option>
-            <template v-for="group in categoryGroups" :key="group.parent._id">
-              <optgroup v-if="group.children.length > 0" :label="group.parent.name">
-                <option v-for="child in group.children" :key="child._id" :value="child._id">
-                  {{ child.name }}
-                </option>
-              </optgroup>
-              <option v-else :value="group.parent._id">{{ group.parent.name }}</option>
-            </template>
-          </select>
+          <label>Categories</label>
+
+          <!-- Selected category tags -->
+          <div v-if="form.categories.length > 0" class="tags">
+            <span v-for="id in form.categories" :key="id" class="tag">
+              {{ getCategoryName(id) }}
+              <button type="button" class="tag-remove" @click="removeCategory(id)">✕</button>
+            </span>
+          </div>
+
+          <!-- Category picker -->
+          <div class="related-picker">
+            <input
+              v-model="categorySearch"
+              placeholder="Search categories..."
+              class="related-search"
+            />
+            <div class="related-list">
+              <div v-if="filteredCategories.length === 0" class="related-empty">
+                No categories found.
+              </div>
+              <label
+                v-for="c in filteredCategories"
+                :key="c._id"
+                class="related-item"
+                :class="{ selected: isCategorySelected(c._id) }"
+              >
+                <input
+                  type="checkbox"
+                  :checked="isCategorySelected(c._id)"
+                  @change="toggleCategory(c._id)"
+                />
+                <div class="related-info">
+                  <span class="related-name">{{ c.name }}</span>
+                  <span v-if="c.groupName" class="related-price">{{ c.groupName }}</span>
+                </div>
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- Scent -->

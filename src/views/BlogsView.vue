@@ -1,66 +1,68 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useProducts } from '../composables/useProducts.js'
-import ProductFormModal from '../components/ProductFormModal.vue'
+import { useBlogs } from '../composables/useBlogs.js'
+import BlogFormModal from '../components/BlogFormModal.vue'
 
-const { products, loading, error, fetchProducts, createProduct, updateProduct, deleteProduct } = useProducts()
+const { blogs, loading, error, fetchBlogs, createBlog, updateBlog, deleteBlog } = useBlogs()
 
 const showModal = ref(false)
-const editingProduct = ref(null)
+const editingBlog = ref(null)
 const toast = ref('')
 
-onMounted(fetchProducts)
+onMounted(fetchBlogs)
 
 function openCreate() {
-  editingProduct.value = null
+  editingBlog.value = null
   showModal.value = true
 }
 
-function openEdit(product) {
-  editingProduct.value = product
+function openEdit(blog) {
+  editingBlog.value = blog
   showModal.value = true
 }
 
 function closeModal() {
   showModal.value = false
-  editingProduct.value = null
+  editingBlog.value = null
 }
 
 async function handleSave(payload) {
   let result
-  if (editingProduct.value) {
-    result = await updateProduct(editingProduct.value._id, payload)
+  if (editingBlog.value) {
+    result = await updateBlog(editingBlog.value._id, payload)
   } else {
-    result = await createProduct(payload)
+    result = await createBlog(payload)
   }
   if (result.success) {
-    showToast(editingProduct.value ? 'Product updated.' : 'Product created.')
+    showToast(editingBlog.value ? 'Blog updated.' : 'Blog created.')
     closeModal()
   } else {
     showToast(result.message || 'Something went wrong.', true)
   }
 }
 
-async function handleDelete(product) {
-  if (!confirm(`Delete "${product.name}"?`)) return
-  const result = await deleteProduct(product._id)
+async function handleDelete(blog) {
+  if (!confirm(`Delete "${blog.title}"?`)) return
+  const result = await deleteBlog(blog._id)
   if (result.success) {
-    showToast('Product deleted.')
+    showToast('Blog deleted.')
   } else {
     showToast(result.message || 'Delete failed.', true)
   }
 }
 
-async function handleDuplicate(product) {
-  const duplicatedProduct = { ...product }
-  delete duplicatedProduct._id
-  duplicatedProduct.name = `Copy of ${product.name}`
-  const result = await createProduct(duplicatedProduct)
-  if (result.success) {
-    showToast('Product duplicated.')
-  } else {
-    showToast(result.message || 'Duplication failed.', true)
-  }
+function formatDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
+function truncate(text, len = 80) {
+  if (!text) return ''
+  const stripped = text.replace(/<[^>]*>/g, '')
+  return stripped.length > len ? stripped.slice(0, len) + '...' : stripped
 }
 
 let toastTimer = null
@@ -72,21 +74,21 @@ function showToast(msg, isError = false) {
 </script>
 
 <template>
-  <div class="products-page">
+  <div class="blogs-page">
     <div class="page-header">
       <div>
-        <h2>Products</h2>
-        <p class="subtitle">Manage your product catalog</p>
+        <h2>Blog Posts</h2>
+        <p class="subtitle">Manage your blog content</p>
       </div>
-      <button class="btn-primary" @click="openCreate">+ Add Product</button>
+      <button class="btn-primary" @click="openCreate">+ Add Blog Post</button>
     </div>
 
-    <div v-if="loading" class="state-msg">Loading products...</div>
+    <div v-if="loading" class="state-msg">Loading blogs...</div>
     <div v-else-if="error" class="state-msg error">{{ error }}</div>
 
-    <div v-else-if="products.length === 0" class="empty">
-      <p>No products yet.</p>
-      <button class="btn-primary" @click="openCreate">Add your first product</button>
+    <div v-else-if="blogs.length === 0" class="empty">
+      <p>No blog posts yet.</p>
+      <button class="btn-primary" @click="openCreate">Add your first blog post</button>
     </div>
 
     <div v-else class="table-wrap">
@@ -94,52 +96,47 @@ function showToast(msg, isError = false) {
         <thead>
           <tr>
             <th>Image</th>
-            <th>Name</th>
-            <th>Categories</th>
-            <th>Scent</th>
-            <th>Price</th>
-            <th>Stock</th>
+            <th>Title</th>
+            <th>Tags</th>
+            <th>Status</th>
+            <th>Date</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="product in products" :key="product._id">
+          <tr v-for="blog in blogs" :key="blog._id">
             <td>
-              <img v-if="product.image" :src="product.image" :alt="product.name" class="thumb" />
-              <div v-else class="no-img">—</div>
+              <img v-if="blog.image" :src="blog.image" :alt="blog.title" class="thumb" />
+              <div v-else class="no-img">--</div>
             </td>
             <td>
-              <div class="product-name">{{ product.name }}</div>
-              <div class="product-desc">{{ product.description }}</div>
+              <div class="blog-title">{{ blog.title }}</div>
+              <div class="blog-desc">{{ truncate(blog.content) }}</div>
             </td>
             <td>
               <div class="badge-group">
-                <span v-for="cat in (product.categories || [])" :key="cat._id || cat" class="badge">
-                  {{ cat.name || cat }}
-                </span>
-                <span v-if="!product.categories || product.categories.length === 0" class="badge">—</span>
+                <span v-for="tag in (blog.tags || [])" :key="tag" class="badge">{{ tag }}</span>
+                <span v-if="!blog.tags || blog.tags.length === 0" class="badge muted">--</span>
               </div>
             </td>
-            <td class="scent-cell">{{ product.scent || '—' }}</td>
-            <td class="price">${{ product.price.toFixed(2) }}</td>
             <td>
-              <span :class="['stock', product.stock === 0 ? 'out' : product.stock < 10 ? 'low' : 'ok']">
-                {{ product.stock }}
+              <span :class="['status', blog.published ? 'published' : 'draft']">
+                {{ blog.published ? 'Published' : 'Draft' }}
               </span>
             </td>
+            <td class="date-cell">{{ formatDate(blog.createdAt) }}</td>
             <td class="actions-cell">
-              <button class="btn-edit" @click="openEdit(product)">Edit</button>
-              <button class="btn-duplicate" @click="handleDuplicate(product)">Duplicate</button>
-              <button class="btn-delete" @click="handleDelete(product)">Delete</button>
+              <button class="btn-edit" @click="openEdit(blog)">Edit</button>
+              <button class="btn-delete" @click="handleDelete(blog)">Delete</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <ProductFormModal
+    <BlogFormModal
       :show="showModal"
-      :product="editingProduct"
+      :blog="editingBlog"
       @close="closeModal"
       @save="handleSave"
     />
@@ -151,7 +148,7 @@ function showToast(msg, isError = false) {
 </template>
 
 <style scoped>
-.products-page {
+.blogs-page {
   padding: 2rem;
   position: relative;
 }
@@ -254,16 +251,16 @@ tr:hover td {
 }
 
 .thumb {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 38px;
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
 }
 
 .no-img {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 38px;
   background: #f3f4f6;
   border-radius: 6px;
   display: flex;
@@ -273,16 +270,16 @@ tr:hover td {
   font-size: 0.75rem;
 }
 
-.product-name {
+.blog-title {
   font-weight: 500;
   color: #1a1a1a;
 }
 
-.product-desc {
+.blog-desc {
   font-size: 0.78rem;
   color: #9ca3af;
   margin-top: 0.15rem;
-  max-width: 260px;
+  max-width: 300px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -304,24 +301,34 @@ tr:hover td {
   font-weight: 500;
 }
 
-.scent-cell {
+.badge.muted {
+  background: #f3f4f6;
+  color: #9ca3af;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status.published {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.status.draft {
+  background: #fefce8;
+  color: #ca8a04;
+}
+
+.date-cell {
   color: #6b7280;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
-
-.price {
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.stock {
-  font-weight: 600;
-  font-size: 0.88rem;
-}
-
-.stock.ok { color: #16a34a; }
-.stock.low { color: #d97706; }
-.stock.out { color: #dc2626; }
 
 .actions-cell {
   display: flex;
@@ -366,7 +373,7 @@ tr:hover td {
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   z-index: 200;
   animation: slidein 0.2s ease;
 }
